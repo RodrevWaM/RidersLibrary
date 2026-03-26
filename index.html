@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Врата библиотеки</title>
+  <style>
+    :root {
+      --bg1: #0d0b12;
+      --bg2: #17131f;
+      --panel: rgba(20, 16, 28, 0.82);
+      --panel-border: rgba(212, 179, 96, 0.28);
+      --gold: #d4b360;
+      --text: #efe8d5;
+      --text-dim: #ccb98c;
+      --error: #d97b7b;
+      --success: #9bd39d;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.48);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 18% 20%, rgba(130, 74, 24, 0.16), transparent 26%),
+        radial-gradient(circle at 82% 14%, rgba(107, 27, 27, 0.14), transparent 28%),
+        radial-gradient(circle at 50% 100%, rgba(69, 91, 131, 0.12), transparent 32%),
+        linear-gradient(180deg, var(--bg2), var(--bg1));
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    body::before {
+      background:
+        radial-gradient(circle at 10% 10%, rgba(255, 215, 140, 0.05) 0, transparent 2px) 0 0 / 160px 160px,
+        radial-gradient(circle at 90% 34%, rgba(255, 215, 140, 0.04) 0, transparent 2px) 0 0 / 230px 230px;
+      opacity: 0.7;
+    }
+
+    body::after {
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), transparent 20%, transparent 80%, rgba(255,255,255,0.02));
+      mix-blend-mode: screen;
+    }
+
+    .wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      position: relative;
+      isolation: isolate;
+    }
+
+    .dragon {
+      position: fixed;
+      top: 50%;
+      width: 200px;
+      height: 200px;
+      transform: translateY(-50%);
+      opacity: 0.12;
+      filter: drop-shadow(0 0 18px rgba(212, 179, 96, 0.1));
+      pointer-events: none;
+    }
+
+    .dragon.left { left: 2vw; }
+    .dragon.right { right: 2vw; transform: translateY(-50%) scaleX(-1); }
+
+    .panel {
+      width: min(100%, 760px);
+      padding: 38px 28px 30px;
+      border-radius: 24px;
+      border: 1px solid var(--panel-border);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01)),
+        var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 24px;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(212, 179, 96, 0.42), transparent 30%, transparent 70%, rgba(212, 179, 96, 0.18));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+              mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .crest {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 18px;
+    }
+
+    .crest-badge {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      border: 1px solid rgba(212, 179, 96, 0.45);
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at 50% 35%, rgba(212,179,96,0.16), rgba(255,255,255,0.02));
+      box-shadow: inset 0 0 24px rgba(212, 179, 96, 0.08), 0 0 30px rgba(0,0,0,0.25);
+      color: var(--gold);
+      font-size: 42px;
+    }
+
+    h1 {
+      margin: 0;
+      text-align: center;
+      color: var(--gold);
+      font-size: clamp(1.9rem, 4vw, 2.7rem);
+      letter-spacing: 0.04em;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      margin: 12px auto 28px;
+      max-width: 600px;
+      text-align: center;
+      color: var(--text-dim);
+      line-height: 1.7;
+      font-size: 1.06rem;
+    }
+
+    .form {
+      display: grid;
+      gap: 14px;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    .label {
+      color: var(--text-dim);
+      font-size: 0.96rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    input {
+      width: 100%;
+      padding: 16px 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(212, 179, 96, 0.24);
+      background: rgba(8, 8, 12, 0.55);
+      color: var(--text);
+      outline: none;
+      font-size: 1rem;
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    input::placeholder {
+      color: rgba(239, 232, 213, 0.44);
+    }
+
+    input:focus {
+      border-color: rgba(212, 179, 96, 0.56);
+      box-shadow: 0 0 0 4px rgba(212, 179, 96, 0.08);
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    button {
+      appearance: none;
+      border: none;
+      cursor: pointer;
+      border-radius: 14px;
+      padding: 14px 20px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1a150c;
+      background: linear-gradient(180deg, #e2c57c, #b88c34);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.35);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.04);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    button:disabled,
+    input:disabled {
+      opacity: 0.75;
+      cursor: default;
+    }
+
+    .message-wrap {
+      min-height: 68px;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 8px 6px 0;
+    }
+
+    .message {
+      margin: 0;
+      max-width: 520px;
+      line-height: 1.55;
+      font-size: 1.05rem;
+      color: var(--text-dim);
+      transition: opacity 0.6s ease, transform 0.6s ease, color 0.35s ease;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .message.fade {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    .message.error {
+      color: var(--error);
+    }
+
+    .message.success {
+      color: var(--success);
+      text-shadow: 0 0 18px rgba(155, 211, 157, 0.18);
+    }
+
+    .footnote {
+      text-align: center;
+      color: rgba(239, 232, 213, 0.44);
+      font-size: 0.9rem;
+      margin-top: 22px;
+    }
+
+    .runes {
+      position: absolute;
+      inset: auto 0 16px 0;
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      color: rgba(212, 179, 96, 0.16);
+      font-size: 1.2rem;
+      letter-spacing: 0.2em;
+      pointer-events: none;
+    }
+
+    @media (max-width: 860px) {
+      .dragon {
+        width: 130px;
+        height: 130px;
+        opacity: 0.08;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .panel {
+        padding: 28px 18px 26px;
+      }
+
+      .dragon {
+        display: none;
+      }
+
+      .actions {
+        display: block;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <svg class="dragon left" viewBox="0 0 200 200" aria-hidden="true">
+    <path fill="currentColor" d="M158 30c-18 2-32 12-41 24-8 10-16 14-30 16-12 2-22 9-29 18 11-3 21-2 28 1-20 11-34 33-34 57 8-10 18-16 29-18-4 10-5 22-1 34 8-13 18-22 31-27 11-4 21-4 33-3-7-6-11-13-13-21 17 0 31-5 42-16-13 2-24 0-31-5 17-7 28-20 33-38-6 5-14 8-23 9 7-9 9-20 6-31z" />
+  </svg>
+
+  <svg class="dragon right" viewBox="0 0 200 200" aria-hidden="true">
+    <path fill="currentColor" d="M158 30c-18 2-32 12-41 24-8 10-16 14-30 16-12 2-22 9-29 18 11-3 21-2 28 1-20 11-34 33-34 57 8-10 18-16 29-18-4 10-5 22-1 34 8-13 18-22 31-27 11-4 21-4 33-3-7-6-11-13-13-21 17 0 31-5 42-16-13 2-24 0-31-5 17-7 28-20 33-38-6 5-14 8-23 9 7-9 9-20 6-31z" />
+  </svg>
+
+  <div class="wrap">
+    <main class="panel">
+      <div class="crest">
+        <div class="crest-badge">🐉</div>
+      </div>
+
+      <h1>Врата библиотеки</h1>
+      <p class="subtitle">Приветствую, всадник! Я - Библиотекарь. Представься или скажи, кто тебя пригласил, и проходи</p>
+
+      <div class="form">
+        <label class="label" for="nick">Имя всадника</label>
+        <input id="nick" type="text" autocomplete="off" spellcheck="false" placeholder="Например: IronRider" />
+
+        <div class="actions">
+          <button id="enterBtn" type="button">Войти в библиотеку</button>
+        </div>
+
+        <div class="message-wrap">
+          <p id="message" class="message">Назови своё имя, и я сверю его с книгой посетителей.</p>
+        </div>
+      </div>
+
+      <p class="footnote">После признания ты будешь пропущен снова на этом устройстве, пока не очистишь данные браузера.</p>
+      <div class="runes">✦ ✧ ᚠ ᚱ ᚦ ✧ ✦</div>
+    </main>
+  </div>
+
+  <script>
+    const SITE_URL = "https://sites.google.com/view/ridersondragons";
+    const STORAGE_KEY = "riders-on-dragons-access";
+    const REDIRECT_DELAY = 2800;
+
+    const allowedNames = [
+      "rodrev",
+      "родрев",
+      "testrider",
+      "newrider",
+      "dragonfox"
+    ];
+
+    const nickInput = document.getElementById("nick");
+    const enterBtn = document.getElementById("enterBtn");
+    const messageEl = document.getElementById("message");
+
+    function normalize(value) {
+      return value
+        .trim()
+        .toLowerCase()
+        .replace(/ё/g, "е")
+        .replace(/\s+/g, " ");
+    }
+
+    function setMessage(text, state = "") {
+      messageEl.classList.add("fade");
+      setTimeout(() => {
+        messageEl.textContent = text;
+        messageEl.className = "message" + (state ? " " + state : "");
+        messageEl.classList.remove("fade");
+      }, 220);
+    }
+
+    function grantAccess(nick) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ ok: true, nick, ts: Date.now() }));
+      setMessage("Добро пожаловать в библиотеку", "success");
+      enterBtn.disabled = true;
+      nickInput.disabled = true;
+      setTimeout(() => {
+        window.location.href = SITE_URL;
+      }, REDIRECT_DELAY);
+    }
+
+    function tryLogin() {
+      const raw = nickInput.value;
+      const nick = normalize(raw);
+
+      if (!nick) {
+        setMessage("Назови имя или имя пригласившего, всадник.", "error");
+        nickInput.focus();
+        return;
+      }
+
+      if (allowedNames.includes(nick)) {
+        grantAccess(raw.trim());
+      } else {
+        setMessage("Прости, всадник, я не узнаю тебя", "error");
+        nickInput.focus();
+        nickInput.select();
+      }
+    }
+
+    enterBtn.addEventListener("click", tryLogin);
+    nickInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        tryLogin();
+      }
+    });
+
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+      if (saved && saved.ok) {
+        setMessage("Добро пожаловать в библиотеку", "success");
+        nickInput.value = saved.nick || "";
+        nickInput.disabled = true;
+        enterBtn.disabled = true;
+        setTimeout(() => {
+          window.location.href = SITE_URL;
+        }, 900);
+      }
+    } catch (error) {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  </script>
+</body>
+</html>
